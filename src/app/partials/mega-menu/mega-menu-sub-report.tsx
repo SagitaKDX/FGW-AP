@@ -8,6 +8,10 @@ const MegaMenuSubReport = ({ items }: { items: MenuConfig }) => {
   const reportItem = items[4];
   const intl = useIntl();
 
+  if (!reportItem || reportItem.disabled || !reportItem.children?.length) {
+    return null;
+  }
+
   return (
     <div className="w-full gap-0 lg:w-[525px]">
       <div className="pt-4 pb-2 lg:p-7.5">

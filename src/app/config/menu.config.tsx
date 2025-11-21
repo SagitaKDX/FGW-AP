@@ -44,9 +44,126 @@ import {
   XCircle,
   Zap
 } from 'lucide-react';
-import { type MenuConfig } from './types';
+import { type MenuConfig, type MenuItem } from './types';
 
-export const MENU_SIDEBAR: MenuConfig = [
+const isGreenwichPortal =
+  typeof window !== 'undefined' &&
+  window.location.hostname.includes('ap.greenwich.edu.vn');
+
+const GREENWICH_ALLOWED_PATHS = new Set([
+  '/',
+  '/Student.aspx',
+  '/CmsFAP/News.aspx',
+  '/FrontOffice/RegisterCourse.aspx?code=R5',
+  '/App/SendAcad.aspx',
+  '/App/AcadAppView.aspx',
+  '/App/AddApp.aspx',
+  '/Feedback/StudentFeedBack.aspx',
+  '/Course/Courses.aspx',
+  '/Report/ScheduleOfWeek.aspx',
+  '/Exam/ScheduleExams.aspx',
+  '/FrontOffice/SubjectFees.aspx',
+  '/Report/ViewAttendstudent.aspx',
+  '/Grade/StudentGrade.aspx',
+  '/Grade/StudentTranscript.aspx',
+  '/FrontOffice/StudentCurriculum.aspx',
+  '/Report/StudentFees.aspx',
+  '/FrontOffice/WishList.aspx',
+  '/User/Profile.aspx',
+  '/User/verProfile.aspx',
+  '/Course/Terms.aspx',
+  '/Campus/Rooms.aspx',
+  '/User/Regulations.aspx',
+  '/Report/Help.aspx',
+]);
+
+const GREENWICH_BLOCKED_EXTERNAL_PREFIXES = [
+  'http://',
+  'https://',
+];
+
+const normalizePath = (path: string): string => {
+  if (path.startsWith('http')) {
+    return path;
+  }
+  return path.startsWith('/') ? path : `/${path}`;
+};
+
+const filterMenuItemsForGreenwich = (
+  items: MenuConfig,
+  level: number = 0,
+): MenuConfig => {
+  return items.reduce<MenuConfig>((acc, item) => {
+    if (item.heading) {
+      acc.push(item);
+      return acc;
+    }
+
+    const newItem: MenuItem = { ...item };
+
+    const normalizedPath = item.path ? normalizePath(item.path) : undefined;
+    if (normalizedPath) {
+      newItem.path = normalizedPath;
+    }
+
+    if (item.children) {
+      const filteredChildren = filterMenuItemsForGreenwich(
+        item.children,
+        level + 1,
+      );
+      if (filteredChildren.length > 0) {
+        newItem.children = filteredChildren;
+      } else {
+        delete newItem.children;
+      }
+    }
+
+    const hasChildren =
+      Array.isArray(newItem.children) && newItem.children.length > 0;
+    const path = newItem.path;
+    const isExternal =
+      typeof path === 'string' &&
+      GREENWICH_BLOCKED_EXTERNAL_PREFIXES.some((prefix) =>
+        path.startsWith(prefix),
+      );
+
+    const isInternalButNotAllowed =
+      typeof path === 'string' &&
+      !isExternal &&
+      !GREENWICH_ALLOWED_PATHS.has(path);
+
+    if (isExternal || isInternalButNotAllowed || (!path && !hasChildren)) {
+      if (level === 0) {
+        acc.push({
+          ...newItem,
+          path: undefined,
+          children: undefined,
+          disabled: true,
+        });
+      }
+      return acc;
+    }
+
+    if (typeof path === 'string' && !path.startsWith('http')) {
+      newItem.path = path;
+    }
+
+    acc.push(newItem);
+    return acc;
+  }, []);
+};
+
+const filterMenuRootForGreenwich = (items: MenuConfig): MenuConfig => {
+  return items.filter((item) => {
+    if (!item.path) {
+      return false;
+    }
+    const path = normalizePath(item.path);
+    return GREENWICH_ALLOWED_PATHS.has(path);
+  });
+};
+
+const FPT_MENU_SIDEBAR: MenuConfig = [
   {
     title: 'MENU.ACADEMIC_PORTAL',
     icon: LayoutGrid,
@@ -195,7 +312,7 @@ export const MENU_SIDEBAR: MenuConfig = [
   },
 ];
 
-export const MENU_SIDEBAR_CUSTOM: MenuConfig = [
+const FPT_MENU_SIDEBAR_CUSTOM: MenuConfig = [
   {
     title: 'MENU.REGISTRATION_APPLICATION',
     icon: FileText,
@@ -224,7 +341,7 @@ export const MENU_SIDEBAR_CUSTOM: MenuConfig = [
   },
 ];
 
-export const MENU_SIDEBAR_COMPACT: MenuConfig = [
+const FPT_MENU_SIDEBAR_COMPACT: MenuConfig = [
   {
     title: 'MENU.HOME',
     icon: LayoutGrid,
@@ -289,7 +406,7 @@ export const MENU_SIDEBAR_COMPACT: MenuConfig = [
   },
 ];
 
-export const MENU_MEGA: MenuConfig = [
+const FPT_MENU_MEGA: MenuConfig = [
   { title: 'MENU.HOME', path: '/Student.aspx' },
   { title: 'MENU.NEWS', path: '/CmsFAP/News.aspx' },
   {
@@ -489,7 +606,7 @@ export const MENU_MEGA: MenuConfig = [
   },
 ];
 
-export const MENU_MEGA_MOBILE: MenuConfig = [
+const FPT_MENU_MEGA_MOBILE: MenuConfig = [
   { title: 'MENU.HOME', path: '/Student.aspx' },
   {
     title: 'MENU.REGISTRATION_APPLICATION',
@@ -542,7 +659,7 @@ export const MENU_MEGA_MOBILE: MenuConfig = [
   },
 ];
 
-export const MENU_HELP: MenuConfig = [
+const FPT_MENU_HELP: MenuConfig = [
   {
     title: 'MENU.HELP',
     icon: HelpCircle,
@@ -574,7 +691,7 @@ export const MENU_HELP: MenuConfig = [
   },
 ];
 
-export const MENU_ROOT: MenuConfig = [
+const FPT_MENU_ROOT: MenuConfig = [
   {
     title: 'MENU.REGISTRATION_APPLICATION',
     icon: FileText,
@@ -611,3 +728,92 @@ export const MENU_ROOT: MenuConfig = [
     childrenIndex: 5,
   },
 ];
+
+const ensureMegaMenuStructure = (items: MenuConfig): MenuConfig => {
+  const map = new Map<string, MenuItem>();
+  items.forEach((item) => {
+    if (item.title) {
+      map.set(item.title, item);
+    }
+  });
+
+  const createPlaceholder = (title: string): MenuItem => ({
+    title,
+    disabled: true,
+    children: [],
+  });
+
+  const getItem = (title: string): MenuItem => {
+    const existing = map.get(title);
+    if (existing) {
+      return {
+        ...existing,
+        children: existing.children ?? [],
+      };
+    }
+    return createPlaceholder(title);
+  };
+
+  return [
+    getItem('MENU.HOME'),
+    getItem('MENU.NEWS'),
+    getItem('MENU.REGISTRATION_APPLICATION'),
+    getItem('MENU.LOOKUP'),
+    getItem('MENU.REPORTS'),
+    getItem('MENU.INFORMATION'),
+    getItem('MENU.COURSES_ON_COURSERA'),
+  ];
+};
+
+const GREENWICH_MENU_SIDEBAR: MenuConfig =
+  filterMenuItemsForGreenwich(FPT_MENU_SIDEBAR);
+
+const GREENWICH_MENU_SIDEBAR_CUSTOM: MenuConfig =
+  filterMenuItemsForGreenwich(FPT_MENU_SIDEBAR_CUSTOM);
+
+const GREENWICH_MENU_SIDEBAR_COMPACT: MenuConfig =
+  filterMenuItemsForGreenwich(FPT_MENU_SIDEBAR_COMPACT);
+
+const GREENWICH_MENU_MEGA: MenuConfig = ensureMegaMenuStructure(
+  filterMenuItemsForGreenwich(FPT_MENU_MEGA),
+);
+
+const GREENWICH_MENU_MEGA_MOBILE: MenuConfig = filterMenuItemsForGreenwich(
+  FPT_MENU_MEGA_MOBILE,
+);
+
+const GREENWICH_MENU_HELP: MenuConfig = filterMenuItemsForGreenwich(
+  FPT_MENU_HELP,
+);
+
+const GREENWICH_MENU_ROOT: MenuConfig =
+  filterMenuRootForGreenwich(FPT_MENU_ROOT);
+
+export const MENU_SIDEBAR: MenuConfig = isGreenwichPortal
+  ? GREENWICH_MENU_SIDEBAR
+  : FPT_MENU_SIDEBAR;
+
+export const MENU_SIDEBAR_CUSTOM: MenuConfig = isGreenwichPortal
+  ? GREENWICH_MENU_SIDEBAR_CUSTOM
+  : FPT_MENU_SIDEBAR_CUSTOM;
+
+export const MENU_SIDEBAR_COMPACT: MenuConfig = isGreenwichPortal
+  ? GREENWICH_MENU_SIDEBAR_COMPACT
+  : FPT_MENU_SIDEBAR_COMPACT;
+
+export const MENU_MEGA: MenuConfig = isGreenwichPortal
+  ? GREENWICH_MENU_MEGA
+  : FPT_MENU_MEGA;
+
+export const MENU_MEGA_MOBILE: MenuConfig = isGreenwichPortal
+  ? GREENWICH_MENU_MEGA_MOBILE
+  : FPT_MENU_MEGA_MOBILE;
+
+export const MENU_HELP: MenuConfig = isGreenwichPortal
+  ? GREENWICH_MENU_HELP
+  : FPT_MENU_HELP;
+
+export const MENU_ROOT: MenuConfig = isGreenwichPortal
+  ? GREENWICH_MENU_ROOT
+  : FPT_MENU_ROOT;
+

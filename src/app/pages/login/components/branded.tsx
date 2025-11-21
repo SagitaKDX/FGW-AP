@@ -8,7 +8,7 @@ export function BrandedLayout() {
       <style>
         {`
           .branded-bg {
-            background-image: url('${toAbsoluteUrl('/media/fpt/background.png')}');
+            background-image: url('${toAbsoluteUrl('/media/fpt/background.jpg')}');
           }
         `}
       </style>
@@ -25,7 +25,7 @@ export function BrandedLayout() {
           <div className="flex flex-col p-8 lg:p-16 gap-4">
             <Link to="/">
               <img
-                src={toAbsoluteUrl('/media/fpt/fpt-logo.png')}
+                src={toAbsoluteUrl('/media/fpt/FGW_logo_d.jpg')}
                 className="h-[40px] max-w-none"
                 alt=""
               />

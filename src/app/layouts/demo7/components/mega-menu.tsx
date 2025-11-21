@@ -25,8 +25,8 @@ export function MegaMenu() {
   const publicProfilesItem = MENU_MEGA[2];
   const myAccountItem = MENU_MEGA[3];
   const networkItem = MENU_MEGA[4];
-  const storeItem = MENU_MEGA[6];
   const authItem = MENU_MEGA[5];
+  const storeItem = MENU_MEGA[6];
   const linkClass = `
     text-sm text-secondary-foreground font-medium rounded-none px-0 border-b border-transparent
     hover:text-primary hover:bg-transparent 
@@ -35,104 +35,131 @@ export function MegaMenu() {
     data-[state=open]:text-mono data-[state=open]:bg-transparent
   `;
   const intl = useIntl();
+  const canShowHome = !!homeItem?.path && !homeItem.disabled;
+  const canShowNews = !!newsItem?.path && !newsItem.disabled;
+  const canShowApplications =
+    !!publicProfilesItem &&
+    !publicProfilesItem.disabled &&
+    !!publicProfilesItem.children?.length;
+  const canShowInformation =
+    !!myAccountItem &&
+    !myAccountItem.disabled &&
+    !!myAccountItem.children?.length;
+  const canShowReports =
+    !!networkItem &&
+    !networkItem.disabled &&
+    !!networkItem.children?.length;
+  const canShowCoursera =
+    !!storeItem && !storeItem.disabled && !!storeItem.children?.length;
+  const canShowRegulations =
+    !!authItem && !authItem.disabled && !!authItem.children?.length;
 
   return (
     <NavigationMenu>
       <NavigationMenuList className="gap-7.5">
-        {/* Home Item */}
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <Link
-              to={homeItem.path || '/'}
+        {canShowHome && (
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link
+                to={homeItem.path || '/'}
+                className={cn(linkClass)}
+                data-active={isActive(homeItem.path) || undefined}
+              >
+                {intl.formatMessage({ id: homeItem.title })}
+              </Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        )}
+
+        {canShowNews && (
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link
+                to={newsItem.path || '/'}
+                className={cn(linkClass)}
+                data-active={isActive(newsItem.path) || undefined}
+              >
+                {intl.formatMessage({ id: newsItem.title })}
+              </Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        )}
+
+        {canShowApplications && (
+          <NavigationMenuItem>
+            <NavigationMenuTrigger
               className={cn(linkClass)}
-              data-active={isActive(homeItem.path) || undefined}
+              data-active={
+                hasActiveChild(publicProfilesItem.children) || undefined
+              }
             >
-              {intl.formatMessage({ id: homeItem.title })}
-            </Link>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
+              {intl.formatMessage({ id: publicProfilesItem.title })}
+            </NavigationMenuTrigger>
+            <NavigationMenuContent className="p-0">
+              <MegaMenuSubApplications items={MENU_MEGA} />
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        )}
 
-        {/* News Item */}
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <Link
-              to={newsItem.path || '/'}
+        {canShowInformation && (
+          <NavigationMenuItem>
+            <NavigationMenuTrigger
               className={cn(linkClass)}
-              data-active={isActive(newsItem.path) || undefined}
+              data-active={hasActiveChild(myAccountItem.children) || undefined}
             >
-              {intl.formatMessage({ id: newsItem.title })}
-            </Link>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
+              {intl.formatMessage({ id: myAccountItem.title })}
+            </NavigationMenuTrigger>
+            <NavigationMenuContent className="p-0">
+              <MegaMenuSubInformation items={MENU_MEGA} />
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        )}
 
-        {/* Public Profiles Item */}
-        <NavigationMenuItem>
-          <NavigationMenuTrigger
-            className={cn(linkClass)}
-            data-active={
-              hasActiveChild(publicProfilesItem.children) || undefined
-            }
-          >
-            {intl.formatMessage({ id: publicProfilesItem.title })}
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-0">
-            <MegaMenuSubApplications items={MENU_MEGA} />
-          </NavigationMenuContent>
-        </NavigationMenuItem>
+        {canShowReports && (
+          <NavigationMenuItem>
+            <NavigationMenuTrigger
+              className={cn(linkClass)}
+              data-active={
+                hasActiveChild(networkItem.children || []) || undefined
+              }
+            >
+              {intl.formatMessage({ id: networkItem.title })}
+            </NavigationMenuTrigger>
+            <NavigationMenuContent className="p-0">
+              <MegaMenuSubReport items={MENU_MEGA} />
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        )}
 
-        {/* My Account Item */}
-        <NavigationMenuItem>
-          <NavigationMenuTrigger
-            className={cn(linkClass)}
-            data-active={hasActiveChild(myAccountItem.children) || undefined}
-          >
-            {intl.formatMessage({ id: myAccountItem.title })}
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-0">
-            <MegaMenuSubInformation items={MENU_MEGA} />
-          </NavigationMenuContent>
-        </NavigationMenuItem>
+        {canShowCoursera && (
+          <NavigationMenuItem>
+            <NavigationMenuTrigger
+              className={cn(linkClass)}
+              data-active={
+                hasActiveChild(storeItem.children || []) || undefined
+              }
+            >
+              {intl.formatMessage({ id: storeItem.title })}
+            </NavigationMenuTrigger>
+            <NavigationMenuContent className="p-0">
+              <MegaMenuSubCoursera items={MENU_MEGA} />
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        )}
 
-        {/* Network Item */}
-        <NavigationMenuItem>
-          <NavigationMenuTrigger
-            className={cn(linkClass)}
-            data-active={
-              hasActiveChild(networkItem.children || []) || undefined
-            }
-          >
-            {intl.formatMessage({ id: networkItem.title })}
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-0">
-            <MegaMenuSubReport items={MENU_MEGA} />
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-
-        {/* Store Item */}
-        <NavigationMenuItem>
-          <NavigationMenuTrigger
-            className={cn(linkClass)}
-            data-active={hasActiveChild(storeItem.children || []) || undefined}
-          >
-            {intl.formatMessage({ id: storeItem.title })}
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-0">
-            <MegaMenuSubCoursera items={MENU_MEGA} />
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-
-        {/* Authentication Item */}
-        <NavigationMenuItem>
-          <NavigationMenuTrigger
-            className={cn(linkClass)}
-            data-active={hasActiveChild(authItem.children) || undefined}
-          >
-            {intl.formatMessage({ id: authItem.title })}
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-0">
-            <MegaMenuSubRegulations items={MENU_MEGA} />
-          </NavigationMenuContent>
-        </NavigationMenuItem>
+        {canShowRegulations && (
+          <NavigationMenuItem>
+            <NavigationMenuTrigger
+              className={cn(linkClass)}
+              data-active={hasActiveChild(authItem.children) || undefined}
+            >
+              {intl.formatMessage({ id: authItem.title })}
+            </NavigationMenuTrigger>
+            <NavigationMenuContent className="p-0">
+              <MegaMenuSubRegulations items={MENU_MEGA} />
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        )}
       </NavigationMenuList>
     </NavigationMenu>
   );

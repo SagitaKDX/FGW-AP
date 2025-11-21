@@ -1,5 +1,7 @@
 /* eslint-disable no-undef */
 
+import { SUPPORTED_DOMAINS } from '../shared/constants/domains';
+
 // FAP URLs that we want to support
 export const supportedPaths = [
     '/',
@@ -23,6 +25,7 @@ export const supportedPaths = [
     '/CmsFAP/PlusNews.aspx*',
     '/Course/Groups.aspx*',
     '/App/AcadAppView.aspx*',
+    '/App/AddApp.aspx*',
     // '/Feedback/StudentFeedBack.aspx*',
     // '/Feedback/StudentFeedback.aspx*',
     // '/Feedback/DoFeedback.aspx*',
@@ -32,7 +35,9 @@ export const supportedPaths = [
   
   // Lấy danh sách URL hỗ trợ
   const getMatches = async (): Promise<string[]> => {
-    return supportedPaths.map(path => `*://fap.fpt.edu.vn${path}`);
+    return SUPPORTED_DOMAINS.flatMap(domain => 
+      supportedPaths.map(path => `*://${domain}${path}`)
+    );
   };
   
   // Kiểm tra trạng thái extension
@@ -112,11 +117,13 @@ export const supportedPaths = [
       }
       
       // Báo cho tất cả các tab FAP về thay đổi trạng thái
-      chrome.tabs.query({url: '*://fap.fpt.edu.vn/*'}, (tabs) => {
-        tabs.forEach(tab => {
-          if (tab.id) {
-            chrome.tabs.sendMessage(tab.id, { reload: true });
-          }
+      SUPPORTED_DOMAINS.forEach(domain => {
+        chrome.tabs.query({url: `*://${domain}/*`}, (tabs) => {
+          tabs.forEach(tab => {
+            if (tab.id) {
+              chrome.tabs.sendMessage(tab.id, { reload: true });
+            }
+          });
         });
       });
       

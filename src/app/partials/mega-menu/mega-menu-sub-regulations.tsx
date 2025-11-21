@@ -8,6 +8,14 @@ const MegaMenuSubRegulations = ({ items }: { items: MenuConfig }) => {
   const regulationsItem = items[5];
   const intl = useIntl();
 
+  if (
+    !regulationsItem ||
+    regulationsItem.disabled ||
+    !regulationsItem.children?.length
+  ) {
+    return null;
+  }
+
   return (
     <div className="w-full gap-0 lg:w-[525px]">
       <div className="pt-4 pb-2 lg:p-7.5">

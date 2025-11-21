@@ -19,18 +19,39 @@ export interface Shift {
 
 // Function to convert HTML data to structured data
 function convertToScheduler(original: Element): (Shift | undefined)[][] {
-  const table = original?.querySelectorAll('table')[2] as HTMLTableElement;
-  if (!table) return [];
+  if (!original) {
+    return [];
+  }
 
-  const shifts = Array.from({ length: table.rows.length - 2 }, () =>
+  const tables = Array.from(
+    original.querySelectorAll('table'),
+  ) as HTMLTableElement[];
+  const scheduleTable =
+    tables.find((table) =>
+      table.classList.contains('table') && table.classList.contains('table-bordered'),
+    ) ?? tables[2];
+
+  if (!scheduleTable) {
+    return [];
+  }
+
+  const headerRows = scheduleTable.rows;
+  if (headerRows.length < 2) {
+    return [];
+  }
+
+  const dayHeaders = Array.from(headerRows[0].cells)
+    .slice(1)
+    .map((cell) => cell.textContent?.trim() || '');
+  const dateHeaders = Array.from(headerRows[1].cells)
+    .slice(1)
+    .map((cell) => cell.textContent?.trim() || '');
+
+  const shifts = Array.from({ length: scheduleTable.rows.length - 2 }, () =>
     Array.from(
-      { length: table.rows[0].cells.length - 1 },
+      { length: dayHeaders.length },
       (): Shift | undefined => undefined
     )
-  );
-
-  const dates = Array.from(table.rows[1].cells).map(
-    (cell) => cell.textContent?.trim() || ''
   );
 
   const yearElement = original?.querySelector(
@@ -41,9 +62,18 @@ function convertToScheduler(original: Element): (Shift | undefined)[][] {
     (option) => option.selected
   )?.value;
 
-  for (let i = 2; i < table.rows.length; i++) {
-    for (let j = 1; j < table.rows[i].cells.length; j++) {
-      const cell = table.rows[i].cells[j];
+  for (let i = 2; i < scheduleTable.rows.length; i++) {
+    const slotRow = scheduleTable.rows[i];
+    const slotCell = slotRow.cells[0];
+    const slotText = slotCell?.textContent?.trim() || '';
+    const timeMatch = slotText.match(/\(([^)]+)\)/);
+    const time = timeMatch ? timeMatch[1] : '';
+    if (!time) {
+      continue;
+    }
+
+    for (let j = 1; j < slotRow.cells.length; j++) {
+      const cell = slotRow.cells[j];
       if (!cell || cell.textContent?.trim() === '-') {
         continue;
       }
@@ -53,12 +83,13 @@ function convertToScheduler(original: Element): (Shift | undefined)[][] {
           'a[href*="ActivityDetail.aspx?id"]'
         );
         const activityId = activityLink?.getAttribute('href')?.split('id=')[1];
-        const courseName = activityLink?.textContent?.trim().replace('-', '');
-        const cellContent = cell.textContent;
-        const room =
-          (cell?.textContent?.match(/\(/g) || [])?.length > 2
-            ? cellContent?.split(' at ')[1]?.split('(')[0]
-            : cellContent?.split(' at ')[1]?.split(' ')[0];
+        const courseName = activityLink?.textContent
+          ?.replace(/\s+/g, ' ')
+          ?.replace('-', '')
+          ?.trim();
+        const cellContent = cell.innerText ?? cell.textContent ?? '';
+        const roomMatch = cellContent.match(/at\s+([^\n-]+?)(?:\s*-\s*|$|\()/i);
+        const room = roomMatch ? roomMatch[1].trim() : '';
 
         const statusText = cell.textContent
           ?.match(/(Not yet|attended|absent)/i)?.[0]
@@ -77,42 +108,56 @@ function convertToScheduler(original: Element): (Shift | undefined)[][] {
             break;
         }
 
-        // Extract time
-        const time = cell
-          .querySelector('span.label.label-success')
-          ?.textContent?.trim()?.replace(/[()]/g, '');
+        const syllabusLink = cell.querySelector(
+          'a.label.label-warning',
+        ) as HTMLAnchorElement | null;
+        const syllabusURL = syllabusLink?.href || '';
 
-        // Extract syllabusURL
-        const syllabusLink = cell.querySelector('a.label.label-warning');
-        const syllabusURL = syllabusLink?.getAttribute('href');
+        const meetLink = cell.querySelector(
+          'a.label.label-info, a.label.label-default',
+        ) as HTMLAnchorElement | null;
+        const meetURL = meetLink?.href || '';
 
-        // Extract meetURL
-        const meetLink = cell.querySelector('a.label.label-default');
-        const meetURL = meetLink?.getAttribute('href');
+        const online =
+          cell.querySelector('.online-indicator') ||
+          cell.textContent?.toLowerCase().includes('online');
 
-        // Check if online class
-        const onlineText = cell.querySelector('.online-text');
-
-        const date = dates[j - 1]; // dd/mm
+        const date = dateHeaders[j - 1] || '';
         const [day, month] = date.split('/');
         const [startHour, startMinute, endHour, endMinute] =
-          time?.replace(/[()]/g, '').split(/[-:]/) || [];
+          time.split(/[-:]/) || [];
+
+        if (
+          !currentYear ||
+          !day ||
+          !month ||
+          !startHour ||
+          !startMinute ||
+          !endHour ||
+          !endMinute
+        ) {
+          continue;
+        }
 
         const startTime = new Date(
-          parseInt(currentYear || '0'),
-          parseInt(month) - 1,
-          parseInt(day),
-          parseInt(startHour),
-          parseInt(startMinute)
+          Number(currentYear),
+          Number(month) - 1,
+          Number(day),
+          Number(startHour),
+          Number(startMinute)
         );
 
         const endTime = new Date(
-          parseInt(currentYear || '0'),
-          parseInt(month) - 1,
-          parseInt(day),
-          parseInt(endHour),
-          parseInt(endMinute)
+          Number(currentYear),
+          Number(month) - 1,
+          Number(day),
+          Number(endHour),
+          Number(endMinute)
         );
+
+        if (Number.isNaN(startTime.getTime()) || Number.isNaN(endTime.getTime())) {
+          continue;
+        }
 
         shifts[i - 2][j - 1] = {
           activityId: parseInt(activityId || '0'),
@@ -123,10 +168,10 @@ function convertToScheduler(original: Element): (Shift | undefined)[][] {
             start: startTime.toISOString(),
             end: endTime.toISOString(),
           },
-          materialURL: syllabusURL || '',
-          meetingURL: meetURL || '',
+          materialURL: syllabusURL,
+          meetingURL: meetURL,
           status: status,
-          online: onlineText ? true : false,
+          online: Boolean(online),
         };
       } catch (error) {
         console.error('Error processing cell:', error);
@@ -166,7 +211,12 @@ export const useScheduleOfWeek = () => {
       const table = original?.querySelectorAll('table')[2] as HTMLTableElement;
       return Array.from(table.rows[1].cells)
         .slice(0) // Skip the first cell which is "SLOT"
-        .map((cell) => cell.textContent?.trim() || '');
+        .map((cell) => {
+          let text = cell.textContent?.trim() || '';
+          // Remove "Powered by Greenwich" and "CMS" text
+          text = text.replace(/©\s*Powered by Greenwich[^|]*\|?\s*CMS?/gi, '').trim();
+          return text;
+        });
     },
     yearOptions: (original) => {
       if (!original) return [];
@@ -174,11 +224,13 @@ export const useScheduleOfWeek = () => {
         '#ctl00_mainContent_drpYear'
       ) as HTMLSelectElement;
       if (!year) return [];
-      return Array.from(year.options).map((option) => ({
-        value: option.value,
-        label: option.text?.trim(),
-        selected: option.selected,
-      }));
+      return Array.from(year.options)
+        .map((option) => ({
+          value: option.value?.trim() || '',
+          label: option.text?.trim(),
+          selected: option.selected,
+        }))
+        .filter((option) => option.value !== '');
     },
     weekOptions: (original) => {
       if (!original) return [];
@@ -186,11 +238,13 @@ export const useScheduleOfWeek = () => {
         '#ctl00_mainContent_drpSelectWeek'
       ) as HTMLSelectElement;
       if (!week) return [];
-      return Array.from(week.options).map((option) => ({
-        value: option.value,
-        label: option.text?.trim()?.replace('To', '-'),
-        selected: option.selected,
-      }));
+      return Array.from(week.options)
+        .map((option) => ({
+          value: option.value?.trim() || '',
+          label: option.text?.trim()?.replace('To', '-'),
+          selected: option.selected,
+        }))
+        .filter((option) => option.value !== '');
     },
     currentWeekValue: (original) => {
       if (!original) return '0';
@@ -198,9 +252,9 @@ export const useScheduleOfWeek = () => {
         '#ctl00_mainContent_drpSelectWeek'
       ) as HTMLSelectElement;
       if (!week) return '0';
-      const currentWeekValue = Array.from(week.options).find(
-        (option) => option.selected
-      )?.value;
+      const currentWeekValue = Array.from(week.options)
+        .map((option) => option.value?.trim() || '')
+        .find((value, index) => week.options[index].selected && value !== '');
       return currentWeekValue ? currentWeekValue : '1';
     },
     viewStateValue: (original) => {

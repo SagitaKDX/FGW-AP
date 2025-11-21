@@ -6,6 +6,14 @@ const MegaMenuSubCoursera = ({ items }: { items: MenuConfig }) => {
   const courseraItem = items[6];
   const intl = useIntl();
 
+  if (
+    !courseraItem ||
+    courseraItem.disabled ||
+    !courseraItem.children?.length
+  ) {
+    return null;
+  }
+
   return (
     <div className="w-full gap-0 lg:w-[625px]">
       <div className="pt-4 pb-2 lg:p-7.5">

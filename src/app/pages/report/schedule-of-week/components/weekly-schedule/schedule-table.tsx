@@ -38,9 +38,11 @@ const ScheduleTable = ({ isLoading, shifts, days, onShiftClick }: ScheduleTableP
                   )}
                 >
                   {dayHeader}
-                  <div className="text-xs font-medium">
-                    {days && days[index] ? days[index] : ''}
-                  </div>
+                  {days && days[index] && days[index].trim() && (
+                    <div className="text-xs font-medium">
+                      {days[index]}
+                    </div>
+                  )}
                 </TableHead>
               ))}
             </TableRow>

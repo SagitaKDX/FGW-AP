@@ -14,7 +14,7 @@ import { Icons } from '@/app/components/common/icons';
 import { useLogin } from './use-login';
 
 const LoginPage = () => {
-  const [campusId, setCampusId] = useState('3');
+  const [campusId, setCampusId] = useState('4');
   const {
     message,
     viewStateValue,
@@ -42,7 +42,7 @@ const LoginPage = () => {
 
   const onGoogleLogin = () => {
     localStorage.setItem('lastCampus', campusId);
-    setEventTarget('ctl00$mainContent$btnLogin');
+    setEventTarget('ctl00$mainContent$btnloginGoogle');
   };
 
   const onFeIdLogin = () => {
@@ -59,7 +59,7 @@ const LoginPage = () => {
         type="hidden"
         name="__EVENTTARGET"
         id="__EVENTTARGET"
-        value="ctl00$mainContent$btnLogin"
+        value="ctl00$mainContent$btnloginGoogle"
       />
       <input
         type="hidden"
@@ -150,11 +150,10 @@ const LoginPage = () => {
             <SelectValue placeholder="Select Campus" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="3">FU - Hòa Lạc</SelectItem>
-            <SelectItem value="4">FU - Hồ Chí Minh</SelectItem>
-            <SelectItem value="5">FU - Đà Nẵng</SelectItem>
-            <SelectItem value="6">FU - Cần Thơ</SelectItem>
-            <SelectItem value="7">FU - Quy Nhơn</SelectItem>
+            <SelectItem value="3">Ha Noi</SelectItem>
+            <SelectItem value="4">Ho Chi Minh</SelectItem>
+            <SelectItem value="5">Da Nang</SelectItem>
+            <SelectItem value="6">Can Tho</SelectItem>
           </SelectContent>
         </Select>
       </div>

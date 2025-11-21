@@ -1,7 +1,15 @@
 import { generalSettings } from '@/app/config/general.config';
 import { Container } from '@/app/components/common/container';
 
+const isGreenwichPortal =
+  typeof window !== 'undefined' &&
+  window.location.hostname.includes('ap.greenwich.edu.vn');
+
 export function Footer() {
+  if (isGreenwichPortal) {
+    return null;
+  }
+
   const currentYear = new Date().getFullYear();
 
   return (

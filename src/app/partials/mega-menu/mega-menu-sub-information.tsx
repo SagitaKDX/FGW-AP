@@ -6,6 +6,14 @@ const MegaMenuSubInformation = ({ items }: { items: MenuConfig }) => {
   const informationItem = items[3];
   const intl = useIntl();
 
+  if (
+    !informationItem ||
+    informationItem.disabled ||
+    !informationItem.children?.length
+  ) {
+    return null;
+  }
+
   return (
     <div className="w-full gap-0 lg:w-[775px]">
       <div className="pt-4 pb-2 lg:p-7.5">

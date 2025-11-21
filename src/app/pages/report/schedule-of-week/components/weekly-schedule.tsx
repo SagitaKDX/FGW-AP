@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useScheduleOfWeek } from '../use-schedule-of-week';
 import { ImportCalendarDialog } from './import-calendar-dialog';
 import { ShiftDetailDialog } from './shift-detail/shift-detail-dialog';
-import { BuildingGuide } from './weekly-schedule/building-guide';
 import { ScheduleControls } from './weekly-schedule/schedule-controls';
 import { ScheduleStats } from './weekly-schedule/schedule-stats';
 import { ScheduleTable } from './weekly-schedule/schedule-table';
@@ -128,9 +127,6 @@ const WeeklySchedule = ({ isLoading: parentLoading }: WeeklyScheduleProps) => {
 
       {/* Stats section */}
       <ScheduleStats shifts={shifts} />
-
-      {/* Building guide */}
-      <BuildingGuide />
 
       {/* Dialog components */}
       <ShiftDetailDialog

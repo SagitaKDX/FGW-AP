@@ -20,13 +20,15 @@
     "512": "/media/icons/512.png"
   },
   "host_permissions": [
-    "*://fap.fpt.edu.vn/*"
+    "*://fap.fpt.edu.vn/*",
+    "*://ap.greenwich.edu.vn/*"
   ],
   "web_accessible_resources": [
     {
       "resources": ["*"],
       "matches": [
-        "*://fap.fpt.edu.vn/*"
+        "*://fap.fpt.edu.vn/*",
+        "*://ap.greenwich.edu.vn/*"
       ]
     }
   ]

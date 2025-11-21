@@ -29,12 +29,12 @@ const HeaderLogo = () => {
       <div className="flex items-center gap-2.5">
         <Link to="/Student.aspx">
           <img
-            src={toAbsoluteUrl('/media/fpt/fpt-logo.png')}
+            src={toAbsoluteUrl('/media/fpt/FGW_logo_d.jpg')}
             className="dark:hidden max-h-[34px]"
             alt="logo"
           />
           <img
-            src={toAbsoluteUrl('/media/fpt/fpt-logo.png')}
+            src={toAbsoluteUrl('/media/fpt/FGW_logo_d.jpg')}
             className="hidden dark:inline-block max-h-[34px]"
             alt="logo"
           />

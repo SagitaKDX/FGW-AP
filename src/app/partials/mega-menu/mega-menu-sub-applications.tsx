@@ -6,6 +6,14 @@ const MegaMenuSubApplications = ({ items }: { items: MenuConfig }) => {
   const applicationsItem = items[2];
   const intl = useIntl();
 
+  if (
+    !applicationsItem ||
+    applicationsItem.disabled ||
+    !applicationsItem.children?.length
+  ) {
+    return null;
+  }
+
   return (
     <div className="w-full gap-0 lg:w-[995px]">
       <div className="pt-4 pb-2 lg:p-7.5">

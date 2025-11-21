@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SUPPORTED_DOMAINS } from '../../shared/constants/domains';
 
 /**
  * Hook để quản lý trạng thái bật/tắt của extension và phiên bản
@@ -39,7 +40,10 @@ export const useExtensionState = () => {
       // Gửi tin nhắn để tải lại tab đang hoạt động nếu đó là trang FAP
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const activeTab = tabs[0];
-        if (activeTab?.id && activeTab.url?.includes('fap.fpt.edu.vn')) {
+        if (
+          activeTab?.id &&
+          SUPPORTED_DOMAINS.some(domain => activeTab.url?.includes(domain))
+        ) {
           chrome.tabs.sendMessage(activeTab.id, { reload: true });
         }
       });
