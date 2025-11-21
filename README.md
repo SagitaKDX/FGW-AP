@@ -1,4 +1,4 @@
-# FAP Beautifier - Chrome Extension
+# FGWAP Beautifier - Chrome Extension
 
 A modern UI enhancement for the UoG academic portal.
 
@@ -91,6 +91,12 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
-
+- This project is base on FAP beautifer application.
 - Thanks to the FPT University for providing the Academic Portal
 - Special thanks to all contributors and users for their feedback and support
+
+
+
+
+
+
